@@ -1,32 +1,22 @@
 from fastapi import APIRouter
-from database import get_connection
+from models.database import Database
+from models.serie import Serie
  
 router = APIRouter(prefix="/series")  # <- isso é importante
+db = Database()
+series_db = []
  
 @router.get("/")
 def listar_series():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
- 
-    cursor.execute("SELECT * FROM serie")
-    series = cursor.fetchall()
- 
-    cursor.close()
-    conn.close()
-    return series
+    
+    db.conectar()
+    series = db.consultar("SELECT * FROM serie")
+    db.desconectar()
+    return series  
+
  
 @router.post("/")
-def criar_serie(titulo: str, descricao: str, ano: int, nome_categoria: str):
-    conn = get_connection()
-    cursor = conn.cursor()
+def cadastrar(serie: Serie):
+    series_db.append(serie)
+    return {"mensagem": "Série cadastrada com sucesso", "serie": serie}
  
-    cursor.execute(
-        "INSERT INTO serie (titulo, descricao, ano_lancamento, nome_categoria) VALUES (%s, %s, %s, %s)",
-        (titulo, descricao, ano, nome_categoria)
-    )
-    conn.commit()
-    novo_id = cursor.lastrowid
- 
-    cursor.close()
-    conn.close()
-    return {"id": novo_id, "mensagem": "Série criada com sucesso"}
