@@ -7,6 +7,7 @@ db = Database()
 series_db = []
  
 @router.get("/")
+
 def listar_series():
     
     db.conectar()
@@ -17,6 +18,9 @@ def listar_series():
  
 @router.post("/")
 def cadastrar(serie: Serie):
-    series_db.append(serie)
+    db.conectar()
+    sql = "INSERT INTO serie (titulo, descricao, ano_lancamento, id_categoria) VALUES (%s, %s,%s,%s)"
+    db.executar(sql,(serie.titulo, serie.descricao,serie.ano_lancamento, serie.id_categoria))
+    db.desconectar()
     return {"mensagem": "Série cadastrada com sucesso", "serie": serie}
  
