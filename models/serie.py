@@ -1,22 +1,12 @@
-from pydantic import BaseModel
 from models.database import Database
+from fastapi import FastAPI
 
-db = Database
-class Ator_serie(BaseModel):
+app = FastAPI()
+db = Database()
 
-    nome_ator: str
-    titulo: str
-    personagem: str 
 
-class Serie(BaseModel):
-    titulo: str
-    descricao: str
-    ano_lancamento: int
-    id_categoria: int
 
-class Ator(BaseModel):
-    nome: str
-    ano_nasc: int
+
 
 
 

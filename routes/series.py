@@ -1,47 +1,80 @@
 from fastapi import APIRouter
 from fastapi import HTTPException
 from models.database import Database
-from models.serie import Serie, Ator, Ator_serie
+from pydantic import BaseModel
+
  
 router = APIRouter(prefix="/series")  # <- isso é importante
 db = Database()
 series_db = []
  
-@router.get("/")
-def listar_series():
-    
-    db.conectar()
-    series = db.consultar("SELECT * FROM serie")
-    db.desconectar()
-    return series  
-
-@router.get("/ator")
-def listar_ator_series():
-    
-    db.conectar()
-    series = db.consultar("SELECT * FROM must_watch.ator_series")
-    db.desconectar()
-    return series  
+def read_item(table_name: str, item_id: int = None):
+    """
+    Consulta uma tabela específica no banco de dados pelo ID.
+    """
+    db.conectar()  # Conecta ao banco de dados
+ 
+    tabelas_permitidas = {
+    'serie': 'id_serie',
+    'categoria': 'id_categoria',
+    'ator': 'id_ator',
+    'motivo_assistir': 'id_motivo',
+}
 
  
-@router.post("/")
-def cadastrar_serie(serie: Serie):
+    coluna_id = tabelas_permitidas.get(table_name)
+ 
+    try:
+        if item_id is None:
+            sql = f"SELECT * FROM {table_name}"
+            params = ()
+        else:
+            sql = f"SELECT * FROM {table_name} WHERE {coluna_id} = %s"
+            params = (item_id,)
+ 
+        resultado = db.consultar(sql, params)
+        db.desconectar()
+       
+        if not resultado:
+            raise HTTPException(status_code=404, detail="Item não encontrado")
+ 
+        return resultado
+    except Exception as e:
+        db.desconectar()
+        raise HTTPException(status_code=500, detail=f"Erro ao consultar o banco de dados: {str(e)}")
+
+
+ 
+
+def create_item(table_name: str, item: dict):
+    '''Adiciona um item a uma tabela específica no banco de dados'''
     db.conectar()
-    sql = "INSERT INTO serie (titulo, descricao, ano_lancamento, id_categoria) VALUES (%s, %s,%s,%s)"
-    db.executar(sql,(serie.titulo, serie.descricao,serie.ano_lancamento, serie.id_categoria))
-    db.desconectar()
-    return {"mensagem": "Série cadastrada com sucesso", "serie": serie}
 
+    try:
+        if table_name not in db.TABELAS:
+            raise HTTPException(status_code=400, detail="Tabela não permitida")
 
-@router.post("/ator")
-def cadastrar_ator(ator: Ator):
-    db.conectar()
-    sql = "INSERT INTO ator (nome, ano_nasc) VALUES (%s, %s)"
-    db.executar(sql,(ator.nome, ator.ano_nasc))
-    db.desconectar()
-    return {"mensagem": "Ator cadastrado com sucesso", "ator": ator}
+        columns = db.TABELAS[table_name]
+        colunas = ', '.join(columns)
+        marcador = ', '.join(['%s'] * len(columns))
 
-@router.put("/") 
+        # Caso especial para avaliacao_serie com NOW()
+        if table_name == 'avaliacao_serie':
+            colunas += ', data_avaliacao'
+            marcador += ', NOW()'
+
+        sql = f"INSERT INTO {table_name} ({colunas}) VALUES ({marcador})"
+        params = tuple(item[colunas] for colunas in columns)
+
+        db.executar(sql, params)
+        db.desconectar()
+
+        return {"message": "Item adicionado com sucesso!"}
+
+    except Exception as e:
+        db.desconectar()
+        raise HTTPException(status_code=500, detail=f"Erro ao adicionar o item: {str(e)}")
+ 
 def update_item(table_name: str, item_id: int, item: dict):
     db.conectar()
 
@@ -64,8 +97,7 @@ def update_item(table_name: str, item_id: int, item: dict):
     except Exception as e:
         db.desconectar()
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar o item: {str(e)}")
-    
-@router.delete("/")   
+      
 def delete_item(table_name: str, item_id: int):
     '''Remove um item de uma tabela específica no banco de dados'''
     db.conectar()
@@ -85,27 +117,15 @@ def delete_item(table_name: str, item_id: int):
     except Exception as e:
         db.desconectar()
         raise HTTPException(status_code=500, detail=f"Erro ao remover o item: {str(e)}")
-
-@router.post("/ator_serie")
-def criar_ator_serie(ator : Ator_serie):
     
-    db.conectar()
 
-    query = f"Select id_autor from ator where (nome like '%{ator.nome_ator}%') limit 1"
-    id_ator = db.select(query) #retorna uma lista de tuplas
-    id_ator = id_ator[0]['id_autor']
+class Ator_serie(BaseModel):
 
-    query = f"Select id_serie from serie where (titulo like '%{ator.titulo}%') limit 1"
-    id_serie = db.select(query) #retorna uma lista de tuplas
-    id_serie = id_serie[0]['id_serie']
+    nome_ator: str
+    titulo: str
+    personagem: str 
 
 
-
-    sql = "INSERT INTO ator_serie (id_serie, id_ator, personagem) VALUES (%s, %s,%s)"
-    db.executar(sql,(id_serie,id_ator, ator.personagem))
-    db.desconectar()
-    return {"mensagem": "Série vinculada ao ator com sucesso"}
-    
 
 
     

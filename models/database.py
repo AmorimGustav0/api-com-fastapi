@@ -86,6 +86,7 @@ class Database:
         'ator': ['nome'],
         'motivo_assistir': ['id_serie', 'motivo'],
         'avaliacao_serie': ['id_serie', 'nota', 'comentario']
+        
     }
     
     PRIMARY_KEYS = {
@@ -95,3 +96,6 @@ class Database:
         'motivo_assistir': 'id_motivo',
         'avaliacao_serie': 'id_avaliacao'
     }
+
+
+    
