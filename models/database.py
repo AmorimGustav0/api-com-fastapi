@@ -15,6 +15,15 @@ class Database:
         self.database: str = getenv('DB_NAME')
         self.connection: Optional[MySQLConnection] = None # Inicialização da conexão
         self.cursor: Union[List[Dict], None] = None # Inicialização do cursor
+
+    def __enter__(self):
+        self.conectar()
+        return self
+    
+    def __exit__(self, exc_type: Optional[Any],exc_value: Optional[Any], exc_tb: Optional[Any]):
+        self.desconectar()
+        if exc_type is not None:
+            print(f'Erro: {exc_value}')
  
     def conectar(self)-> None:
         """Estabelece uma conexão com o banco de dados."""
@@ -51,9 +60,9 @@ class Database:
             self.cursor.execute(sql, params)
             self.connection.commit()
             return self.cursor
-        except Error as e:
+        except Exception as e:
             print(f'Erro de execução: {e}')
-            return None
+            raise e
         
     def consultar(self, sql: str, params: Optional[Tuple[Any,...]]= None) -> Optional[List[dict]]: 
         """Executa uma consulta no banco de dados."""
@@ -64,28 +73,30 @@ class Database:
             self.cursor.execute(sql, params)
             # self.connection.commit() -> select não usa commit
             return self.cursor.fetchall()
-        except Error as e:
+        except Exception as e:
             print(f'Erro de execução: {e}')
 
-            return None
+            raise e
         
 
     def select(self, query):
         try:
             self.cursor.execute(query)
             return self.cursor.fetchall()
-        except Error as e:
+        except Exception as e:
             print(f'erro: {e}')
-            return None
+            raise e
         
     
-    
+class tables:
+
     TABELAS = {
         'serie': ['titulo', 'descricao', 'ano_lancamento', 'id_categoria'],
         'categoria': ['nome_categoria'],
         'ator': ['nome', 'ano_nasc'],
         'motivo_assistir': ['id_serie', 'motivo'],
-        'avaliacao_serie': ['id_serie', 'nota', 'comentario']
+        'avaliacao_serie': ['id_serie', 'nota', 'comentario'],
+        'ator_serie': ['personagem']
         
     }
     
@@ -94,7 +105,8 @@ class Database:
         'categoria': 'id_categoria',
         'ator': 'id_autor',
         'motivo_assistir': 'id_motivo_assistir',
-        'avaliacao_serie': 'id_avaliacao'
+        'avaliacao_serie': 'id_avaliacao',
+        'ator_serie': 'id_ator'
     }
 
 

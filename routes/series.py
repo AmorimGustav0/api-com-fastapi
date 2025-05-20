@@ -1,9 +1,8 @@
 from fastapi import APIRouter, FastAPI
-from models.serie import funcs
+from models.serie import TabelaService, Ator_serie
 from models.database import Database
 
-
-f = funcs
+f = TabelaService()
 router = APIRouter()
 app = FastAPI()
 
@@ -35,7 +34,7 @@ def delete_routes(table_name: str, nome: str):
     return f.delete_item(table_name, nome)
 
 @router.post("/ator_serie/completo")
-def criar_ator_serie(ator : f.Ator_serie):
+def criar_ator_serie(ator : Ator_serie):
 
     db = Database()
     db.conectar()
