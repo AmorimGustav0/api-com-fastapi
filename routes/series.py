@@ -53,7 +53,3 @@ def criar_ator_serie(ator : Ator_serie):
     db.executar(sql,(id_serie,id_ator, ator.personagem))
     db.desconectar()
     return {"mensagem": "Série vinculada ao ator com sucesso"}
-
-
-
-

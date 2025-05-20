@@ -17,8 +17,7 @@ def get_nome_coluna(table_name: str):
         "serie": "titulo",
         "categoria": "nome_categoria",
         "ator": "nome",
-        "ator_serie": "personagem",
-        "motivo_assistir": "motivo"
+        "ator_serie": "personagem"
     }.get(table_name)
 
 
