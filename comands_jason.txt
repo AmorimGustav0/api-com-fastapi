@@ -6,9 +6,9 @@ serie
     "ano_lancamento": 2023
 
 ator
-"id_autor": 1,
-    "nome": "tom holland",
-    "ano_nasc": 1997
+    "id_autor": 1,
+        "nome": "tom holland",
+        "ano_nasc": 1997
 
 ator_serie
 

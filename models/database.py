@@ -92,7 +92,7 @@ class Database:
     PRIMARY_KEYS = {
         'serie': 'id_serie',
         'categoria': 'id_categoria',
-        'ator': 'id_ator',
+        'ator': 'id_autor',
         'motivo_assistir': 'id_motivo_assistir',
         'avaliacao_serie': 'id_avaliacao'
     }

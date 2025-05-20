@@ -71,10 +71,13 @@ class funcs():
     }
         query = f"SELECT {db.PRIMARY_KEYS[table_name]} FROM {table_name} WHERE {coluna} LIKE '%{nome}%' LIMIT 1"
         resultado = db.select(query)
-        id_valor = resultado[0][db.PRIMARY_KEYS[table_name]] 
         
+        
+        if not resultado:
+                raise HTTPException(status_code=404, detail="Item não encontrado para atualização.")
 
-    
+        id_valor = resultado[0][db.PRIMARY_KEYS[table_name]] 
+
         coluna_id = tabelas_permitidas.get(table_name)
     
         try:
@@ -128,28 +131,32 @@ class funcs():
             db.desconectar()
             raise HTTPException(status_code=500, detail=f"Erro ao adicionar o item: {str(e)}")
     
-    def update_item(table_name: str,nome: str, item: dict):
+    def update_item(table_name: str, nome: str, item: dict):
         db.conectar()
+
         def teste():
             if table_name == "serie":
-                resultado = "titulo"
+                return "titulo"
             elif table_name == "categoria":
-                resultado = "nome_categoria"
+                return "nome_categoria"
             elif table_name == "ator":
-                resultado = "nome"
+                return "nome"
             else:
-                resultado = None
-            return resultado
-        
+                return None
+
         coluna = teste()
-        
+
         try:
             if table_name not in db.TABELAS:
                 raise HTTPException(status_code=400, detail="Tabela não permitida")
-                
+
             query = f"SELECT {db.PRIMARY_KEYS[table_name]} FROM {table_name} WHERE {coluna} LIKE '%{nome}%' LIMIT 1"
             resultado = db.select(query)
-            id_valor = resultado[0][db.PRIMARY_KEYS[table_name]]    
+
+            if not resultado:
+                raise HTTPException(status_code=404, detail="Item não encontrado para atualização.")
+
+            id_valor = resultado[0][db.PRIMARY_KEYS[table_name]]
 
             colunas = db.TABELAS[table_name]
             chave_primaria = db.PRIMARY_KEYS[table_name]
@@ -163,9 +170,14 @@ class funcs():
             db.desconectar()
 
             return {"message": "Item atualizado com sucesso!"}
+
+        except HTTPException:
+            db.desconectar()
+            raise
         except Exception as e:
             db.desconectar()
             raise HTTPException(status_code=500, detail=f"Erro ao atualizar o item: {str(e)}")
+
         
     def delete_item(table_name: str, nome: str):
         '''Remove um item de uma tabela específica no banco de dados'''
@@ -189,6 +201,10 @@ class funcs():
             
             query = f"SELECT {db.PRIMARY_KEYS[table_name]} FROM {table_name} WHERE {coluna} LIKE '%{nome}%' LIMIT 1"
             resultado = db.select(query)
+
+            if not resultado:
+                raise HTTPException(status_code=404, detail="Item não encontrado para atualização.")
+            
             id_valor = resultado[0][db.PRIMARY_KEYS[table_name]]  
 
             chave_primaria = db.PRIMARY_KEYS[table_name]
