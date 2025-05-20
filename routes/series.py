@@ -1,131 +1,56 @@
-from fastapi import APIRouter
-from fastapi import HTTPException
+from fastapi import APIRouter, FastAPI
+from models.serie import funcs
 from models.database import Database
-from pydantic import BaseModel
-
- 
-router = APIRouter(prefix="/series")  # <- isso é importante
-db = Database()
-series_db = []
- 
-def read_item(table_name: str, item_id: int = None):
-    """
-    Consulta uma tabela específica no banco de dados pelo ID.
-    """
-    db.conectar()  # Conecta ao banco de dados
- 
-    tabelas_permitidas = {
-    'serie': 'id_serie',
-    'categoria': 'id_categoria',
-    'ator': 'id_ator',
-    'motivo_assistir': 'id_motivo',
-}
-
- 
-    coluna_id = tabelas_permitidas.get(table_name)
- 
-    try:
-        if item_id is None:
-            sql = f"SELECT * FROM {table_name}"
-            params = ()
-        else:
-            sql = f"SELECT * FROM {table_name} WHERE {coluna_id} = %s"
-            params = (item_id,)
- 
-        resultado = db.consultar(sql, params)
-        db.desconectar()
-       
-        if not resultado:
-            raise HTTPException(status_code=404, detail="Item não encontrado")
- 
-        return resultado
-    except Exception as e:
-        db.desconectar()
-        raise HTTPException(status_code=500, detail=f"Erro ao consultar o banco de dados: {str(e)}")
 
 
- 
+f = funcs
+router = APIRouter()
+app = FastAPI()
 
-def create_item(table_name: str, item: dict):
-    '''Adiciona um item a uma tabela específica no banco de dados'''
+
+
+@router.get('/') # define a rota raiz
+def read_root():
+    return {"Series": "Must Watch"}
+
+@router.get("/{table_name}/{item_id}")
+@router.get('/{table_name}')
+def get_routes(table_name: str, item_id: int = None):
+    return f.read_item(table_name, item_id)
+
+@router.post("/{table_name}")
+def create_routes(table_name: str, item: dict):
+    return f.create_item(table_name, item)
+
+@router.put("/{table_name}/{item_id}")
+def update_routes(table_name: str, item_id: int, item: dict):
+    return f.update_item(table_name, item_id, item)
+
+@router.delete("/{table_name}/{item_id}")
+def delete_routes(table_name: str, item_id: int):
+    return f.delete_item(table_name, item_id)
+
+@router.post("/ator_serie/completo")
+def criar_ator_serie(ator : f.Ator_serie):
+
+    db = Database()
     db.conectar()
 
-    try:
-        if table_name not in db.TABELAS:
-            raise HTTPException(status_code=400, detail="Tabela não permitida")
+    query = f"Select id_autor from ator where (nome like '%{ator.nome_ator}%') limit 1"
+    id_ator = db.select(query) #retorna uma lista de tuplas
+    id_ator = id_ator[0]['id_autor']
 
-        columns = db.TABELAS[table_name]
-        colunas = ', '.join(columns)
-        marcador = ', '.join(['%s'] * len(columns))
+    query = f"Select id_serie from serie where (titulo like '%{ator.titulo}%') limit 1"
+    id_serie = db.select(query) #retorna uma lista de tuplas
+    id_serie = id_serie[0]['id_serie']
 
-        # Caso especial para avaliacao_serie com NOW()
-        if table_name == 'avaliacao_serie':
-            colunas += ', data_avaliacao'
-            marcador += ', NOW()'
 
-        sql = f"INSERT INTO {table_name} ({colunas}) VALUES ({marcador})"
-        params = tuple(item[colunas] for colunas in columns)
 
-        db.executar(sql, params)
-        db.desconectar()
-
-        return {"message": "Item adicionado com sucesso!"}
-
-    except Exception as e:
-        db.desconectar()
-        raise HTTPException(status_code=500, detail=f"Erro ao adicionar o item: {str(e)}")
- 
-def update_item(table_name: str, item_id: int, item: dict):
-    db.conectar()
-
-    try:
-        if table_name not in db.TABELAS:
-            raise HTTPException(status_code=400, detail="Tabela não permitida")
-
-        colunas = db.TABELAS[table_name]
-        chave_primaria = db.PRIMARY_KEYS[table_name]
-
-        set_clause = ', '.join([f"{col} = %s" for col in colunas])
-        sql = f"UPDATE {table_name} SET {set_clause} WHERE {chave_primaria} = %s"
-
-        params = tuple(item[col] for col in colunas) + (item_id,)
-
-        db.executar(sql, params)
-        db.desconectar()
-
-        return {"message": "Item atualizado com sucesso!"}
-    except Exception as e:
-        db.desconectar()
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar o item: {str(e)}")
-      
-def delete_item(table_name: str, item_id: int):
-    '''Remove um item de uma tabela específica no banco de dados'''
-    db.conectar()
-
-    try:
-        if table_name not in db.PRIMARY_KEYS:
-            raise HTTPException(status_code=400, detail="Tabela não permitida")
-
-        chave_primaria = db.PRIMARY_KEYS[table_name]
-        sql = f"DELETE FROM {table_name} WHERE {chave_primaria} = %s"
-
-        db.executar(sql, (item_id,))
-        db.desconectar()
-
-        return {"message": "Item removido com sucesso!"}
-
-    except Exception as e:
-        db.desconectar()
-        raise HTTPException(status_code=500, detail=f"Erro ao remover o item: {str(e)}")
-    
-
-class Ator_serie(BaseModel):
-
-    nome_ator: str
-    titulo: str
-    personagem: str 
+    sql = "INSERT INTO ator_serie (id_serie, id_ator, personagem) VALUES (%s, %s,%s)"
+    db.executar(sql,(id_serie,id_ator, ator.personagem))
+    db.desconectar()
+    return {"mensagem": "Série vinculada ao ator com sucesso"}
 
 
 
 
-    

@@ -82,8 +82,8 @@ class Database:
     
     TABELAS = {
         'serie': ['titulo', 'descricao', 'ano_lancamento', 'id_categoria'],
-        'categoria': ['categoria_nome'],
-        'ator': ['nome'],
+        'categoria': ['nome_categoria'],
+        'ator': ['nome', 'ano_nasc'],
         'motivo_assistir': ['id_serie', 'motivo'],
         'avaliacao_serie': ['id_serie', 'nota', 'comentario']
         
@@ -93,7 +93,7 @@ class Database:
         'serie': 'id_serie',
         'categoria': 'id_categoria',
         'ator': 'id_ator',
-        'motivo_assistir': 'id_motivo',
+        'motivo_assistir': 'id_motivo_assistir',
         'avaliacao_serie': 'id_avaliacao'
     }
 
