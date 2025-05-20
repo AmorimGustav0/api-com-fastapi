@@ -13,22 +13,26 @@ app = FastAPI()
 def read_root():
     return {"Series": "Must Watch"}
 
-@router.get("/{table_name}/{item_id}")
+
 @router.get('/{table_name}')
-def get_routes(table_name: str, item_id: int = None):
-    return f.read_item(table_name, item_id)
+def get_total_routes(table_name: str, item_id: int = None):
+    return f.gettotal(table_name, item_id)
+
+@router.get("/{table_name}/{nome}")
+def get_routes(table_name: str, nome: str = None):
+    return f.read_item(table_name, nome)
 
 @router.post("/{table_name}")
 def create_routes(table_name: str, item: dict):
     return f.create_item(table_name, item)
 
-@router.put("/{table_name}/{item_id}")
-def update_routes(table_name: str, item_id: int, item: dict):
-    return f.update_item(table_name, item_id, item)
+@router.put("/{table_name}/{nome}")
+def update_routes(table_name: str, nome: str, item: dict):
+    return f.update_item(table_name, nome, item)
 
-@router.delete("/{table_name}/{item_id}")
-def delete_routes(table_name: str, item_id: int):
-    return f.delete_item(table_name, item_id)
+@router.delete("/{table_name}/{nome}")
+def delete_routes(table_name: str, nome: str):
+    return f.delete_item(table_name, nome)
 
 @router.post("/ator_serie/completo")
 def criar_ator_serie(ator : f.Ator_serie):

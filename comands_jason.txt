@@ -1,0 +1,34 @@
+serie
+"id_serie": 0,
+    "id_categoria": 1,
+    "titulo": "homem aranha 8",
+    "descricao": "aaaaaa",
+    "ano_lancamento": 2023
+
+ator
+"id_autor": 1,
+    "nome": "tom holland",
+    "ano_nasc": 1997
+
+ator_serie
+
+ id_ator": 1,
+    "id_serie": 1,
+    "personagem": "homem aranha"
+
+motivo assistir
+
+ "id_motivo_assistir": 1,
+    "id_serie": 1,
+    "motivo": "uma boa serie sobre..."
+
+categoria
+
+	 "id_categoria": 1,
+    "nome_categoria": "ação"
+
+avaliacao_serie:
+	"id_avaliacao": 1,
+    "id_serie": 1,
+    "nota": 9,
+    "comentario": "muito bom"
